@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mortgage Payoff Planner</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f8f9fb;
+    color: #1a1a2e;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 16px; color: #1a1a2e; }
+
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .settings-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .field label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .field-input {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 34px;
+    transition: border-color 0.15s;
+  }
+  .field-input:focus-within { border-color: #4f46e5; }
+  .field-prefix, .field-suffix {
+    padding: 0 8px;
+    background: #f3f4f6;
+    color: #777;
+    font-size: 0.85rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .field-prefix { border-right: 1.5px solid #d1d5db; }
+  .field-suffix { border-left: 1.5px solid #d1d5db; }
+  .field-input input[type=number],
+  .field-input input[type=text] {
+    border: none;
+    outline: none;
+    padding: 0 8px;
+    font-size: 0.88rem;
+    width: 100%;
+    color: #1a1a2e;
+    font-weight: 500;
+    background: transparent;
+    height: 100%;
+  }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .date-row {
+    display: flex;
+    gap: 6px;
+  }
+  .date-row select {
+    flex: 1;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 8px;
+    height: 34px;
+    font-size: 0.85rem;
+    color: #1a1a2e;
+    background: white;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .date-row select:focus { border-color: #4f46e5; }
+
+  .control-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: #e2e8f0;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4f46e5;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(79,70,229,0.4);
+  }
+  .extra-input {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 110px;
+    height: 34px;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+  .extra-input:focus-within { border-color: #4f46e5; }
+  .extra-input span {
+    padding: 0 8px;
+    background: #f3f4f6;
+    color: #666;
+    font-size: 0.88rem;
+    border-right: 1.5px solid #d1d5db;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .extra-input input[type=number] {
+    border: none;
+    outline: none;
+    padding: 0 8px;
+    font-size: 0.88rem;
+    width: 70px;
+    color: #1a1a2e;
+    font-weight: 600;
+    background: transparent;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .stat-label {
+    font-size: 0.72rem;
+    color: #888;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.2;
+  }
+  .stat-sub { font-size: 0.75rem; color: #888; margin-top: 2px; }
+  .stat-savings { color: #16a34a; }
+  .stat-accent { color: #4f46e5; }
+
+  .chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    margin-bottom: 14px;
+  }
+  .chart-wrap { position: relative; height: 220px; }
+
+  .scenarios-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th {
+    text-align: left;
+    padding: 6px 8px;
+    color: #888;
+    font-weight: 600;
+    border-bottom: 1.5px solid #e5e7eb;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  tbody tr { border-bottom: 1px solid #f3f4f6; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td { padding: 8px 8px; color: #1a1a2e; }
+  tbody tr.highlight { background: #eef2ff; }
+  tbody tr.highlight td { font-weight: 600; color: #4f46e5; }
+  .savings-cell { color: #16a34a; font-weight: 600; }
+
+  .pi-note {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f0f0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Mortgage Payoff Planner</h1>
+
+<!-- Loan Settings -->
+<div class="settings-card">
+  <div class="section-label">Loan Settings</div>
+  <div class="settings-grid">
+
+    <div class="field">
+      <label>Current Balance</label>
+      <div class="field-input">
+        <span class="field-prefix">$</span>
+        <input type="number" id="inputBalance" value="309541.02" step="0.01" min="1">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Balance Date</label>
+      <div class="date-row">
+        <select id="inputMonth">
+          <option value="0">Jan</option><option value="1">Feb</option>
+          <option value="2">Mar</option><option value="3">Apr</option>
+          <option value="4">May</option><option value="5">Jun</option>
+          <option value="6">Jul</option><option value="7">Aug</option>
+          <option value="8">Sep</option><option value="9">Oct</option>
+          <option value="10">Nov</option><option value="11">Dec</option>
+        </select>
+        <select id="inputYear"></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Annual Interest Rate</label>
+      <div class="field-input">
+        <input type="number" id="inputRate" value="3.125" step="0.001" min="0.01" max="30">
+        <span class="field-suffix">%</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Regular Monthly Payment</label>
+      <div class="field-input">
+        <span class="field-prefix">$</span>
+        <input type="number" id="inputRegular" value="2890.83" step="0.01" min="1">
+      </div>
+    </div>
+
+    <div class="field" style="grid-column: span 2;">
+      <label>Monthly Escrow (Taxes + Insurance)</label>
+      <div class="field-input" style="max-width: 180px;">
+        <span class="field-prefix">$</span>
+        <input type="number" id="inputEscrow" value="361.27" step="0.01" min="0">
+      </div>
+      <div class="pi-note" id="piNote">P&amp;I portion: $2,529.56 &nbsp;·&nbsp; Regular − Escrow</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Extra Payment Slider -->
+<div class="control-card">
+  <div class="section-label">Extra Monthly Principal Payment</div>
+  <div class="slider-row">
+    <input type="range" id="extraSlider" min="0" max="3000" step="50" value="1609">
+    <div class="extra-input">
+      <span>$</span>
+      <input type="number" id="extraInput" value="1609" min="0" max="99999">
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Payoff Date</div>
+    <div class="stat-value stat-accent" id="payoffDate">—</div>
+    <div class="stat-sub" id="payoffMonths">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Monthly Payment</div>
+    <div class="stat-value" id="totalPayment">—</div>
+    <div class="stat-sub" id="principalBreakdown">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Remaining Interest</div>
+    <div class="stat-value" id="totalInterest">—</div>
+    <div class="stat-sub" id="baselineInterest">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Interest Saved</div>
+    <div class="stat-value stat-savings" id="interestSaved">—</div>
+    <div class="stat-sub" id="timeSaved">—</div>
+  </div>
+</div>
+
+<!-- Chart -->
+<div class="chart-card">
+  <div class="section-label">Remaining Balance Over Time</div>
+  <div class="chart-wrap">
+    <canvas id="balanceChart"></canvas>
+  </div>
+</div>
+
+<!-- Scenario Table -->
+<div class="scenarios-card">
+  <div class="section-label">Scenario Comparison</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Extra/mo</th>
+        <th>Total/mo</th>
+        <th>Payoff</th>
+        <th>Interest</th>
+        <th>Saved</th>
+      </tr>
+    </thead>
+    <tbody id="scenarioTable"></tbody>
+  </table>
+</div>
+
+<script>
+// --- Populate year dropdown ---
+const yearSel = document.getElementById('inputYear');
+const curYear = new Date().getFullYear();
+for (let y = curYear - 5; y <= curYear + 2; y++) {
+  const opt = document.createElement('option');
+  opt.value = y;
+  opt.textContent = y;
+  if (y === 2026) opt.selected = true;
+  yearSel.appendChild(opt);
+}
+document.getElementById('inputMonth').value = '4'; // May (0-indexed)
+
+// --- Helpers ---
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+function fmtMoney(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+function fmtMonths(n) {
+  const yrs = Math.floor(n / 12);
+  const mos = n % 12;
+  const parts = [];
+  if (yrs > 0) parts.push(yrs + ' yr' + (yrs !== 1 ? 's' : ''));
+  if (mos > 0) parts.push(mos + ' mo' + (mos !== 1 ? 's' : ''));
+  return parts.join(' ') || '< 1 month';
+}
+
+// --- Core calculation ---
+function calcPayoff(balance, startMonth, startYear, monthlyRate, piPayment, extra) {
+  let bal = balance;
+  let months = 0;
+  let totalInterest = 0;
+  const balances = [bal];
+  const dates = [];
+
+  while (bal > 0.01 && months < 600) {
+    const interest = bal * monthlyRate;
+    const principalFromRegular = piPayment - interest;
+    let totalPrincipal = principalFromRegular + extra;
+
+    if (totalPrincipal <= 0) {
+      // Payment doesn't cover interest — would never pay off
+      break;
+    }
+
+    if (totalPrincipal >= bal) {
+      totalInterest += interest;
+      bal = 0;
+      months++;
+      dates.push(fmtDate(new Date(startYear, startMonth + months)));
+      balances.push(0);
+      break;
+    }
+
+    bal -= totalPrincipal;
+    totalInterest += interest;
+    months++;
+    dates.push(fmtDate(new Date(startYear, startMonth + months)));
+    balances.push(Math.max(0, bal));
+  }
+
+  const payoffDate = new Date(startYear, startMonth + months);
+  return { months, totalInterest, balances, dates, payoffDate };
+}
+
+let chart = null;
+
+function getParams() {
+  const balance = parseFloat(document.getElementById('inputBalance').value) || 0;
+  const month = parseInt(document.getElementById('inputMonth').value);
+  const year = parseInt(document.getElementById('inputYear').value);
+  const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+  const regular = parseFloat(document.getElementById('inputRegular').value) || 0;
+  const escrow = parseFloat(document.getElementById('inputEscrow').value) || 0;
+  const monthlyRate = rate / 100 / 12;
+  const piPayment = regular - escrow;
+  return { balance, month, year, monthlyRate, piPayment, regular, escrow };
+}
+
+function updatePiNote() {
+  const { regular, escrow, piPayment } = getParams();
+  document.getElementById('piNote').textContent =
+    `P&I portion: $${piPayment.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}  ·  Regular − Escrow`;
+}
+
+function update(extra) {
+  const { balance, month, year, monthlyRate, piPayment, regular } = getParams();
+
+  if (balance <= 0 || monthlyRate <= 0 || piPayment <= 0) return;
+
+  updatePiNote();
+
+  const baseline = calcPayoff(balance, month, year, monthlyRate, piPayment, 0);
+  const result = calcPayoff(balance, month, year, monthlyRate, piPayment, extra);
+
+  // Stats
+  document.getElementById('payoffDate').textContent = fmtDate(result.payoffDate);
+  document.getElementById('payoffMonths').textContent = fmtMonths(result.months) + ' remaining';
+
+  const totalMonthly = regular + extra;
+  document.getElementById('totalPayment').textContent = fmtMoney(totalMonthly) + '/mo';
+  document.getElementById('principalBreakdown').textContent =
+    '$' + extra.toLocaleString() + ' extra principal';
+
+  document.getElementById('totalInterest').textContent = fmtMoney(result.totalInterest);
+  document.getElementById('baselineInterest').textContent =
+    'vs ' + fmtMoney(baseline.totalInterest) + ' at min payments';
+
+  const saved = baseline.totalInterest - result.totalInterest;
+  const mthsSaved = baseline.months - result.months;
+  document.getElementById('interestSaved').textContent = saved > 0 ? fmtMoney(saved) : '$0';
+  document.getElementById('timeSaved').textContent =
+    mthsSaved > 0 ? fmtMonths(mthsSaved) + ' sooner' : 'no change';
+
+  // Chart — downsample to ~60 pts
+  function buildSeries(r) {
+    const allDates = [fmtDate(new Date(year, month)), ...r.dates];
+    const allBals = r.balances;
+    return { allDates, allBals };
+  }
+
+  const bs = buildSeries(baseline);
+  const rs = buildSeries(result);
+  const maxLen = Math.max(bs.allDates.length, rs.allDates.length);
+  const step = Math.ceil(maxLen / 60);
+  const idxs = [];
+  for (let i = 0; i < maxLen; i += step) idxs.push(i);
+  if (!idxs.includes(maxLen - 1)) idxs.push(maxLen - 1);
+
+  const labels = idxs.map(i => bs.allDates[Math.min(i, bs.allDates.length - 1)]);
+  const baseData = idxs.map(i => i < bs.allBals.length ? Math.round(bs.allBals[i]) : 0);
+  const extraData = idxs.map(i => i < rs.allBals.length ? Math.round(rs.allBals[i]) : 0);
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = baseData;
+    chart.data.datasets[1].data = extraData;
+    chart.update('none');
+  } else {
+    const ctx = document.getElementById('balanceChart').getContext('2d');
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'No extra payment',
+            data: baseData,
+            borderColor: '#94a3b8',
+            backgroundColor: 'rgba(148,163,184,0.08)',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: true,
+            tension: 0.3,
+          },
+          {
+            label: 'With extra payment',
+            data: extraData,
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79,70,229,0.1)',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            fill: true,
+            tension: 0.3,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { font: { size: 11 }, usePointStyle: true, pointStyleWidth: 10 }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => ' ' + ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString()
+            }
+          }
+        },
+        scales: {
+          y: {
+            ticks: {
+              callback: v => '$' + (v / 1000).toFixed(0) + 'k',
+              font: { size: 11 },
+              maxTicksLimit: 6,
+            },
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            min: 0,
+          },
+          x: {
+            ticks: { font: { size: 10 }, maxTicksLimit: 8, maxRotation: 0 },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  // Scenario table
+  const scenarios = [0, 250, 500, 750, 1000, 1250, 1500, 2000, 2500, 3000];
+  const tbody = document.getElementById('scenarioTable');
+  tbody.innerHTML = '';
+
+  // Find highlighted row — exact match or closest scenario
+  const highlightVal = scenarios.includes(extra) ? extra :
+    scenarios.reduce((best, s) => Math.abs(s - extra) < Math.abs(best - extra) ? s : best, -1);
+
+  scenarios.forEach(s => {
+    const r = calcPayoff(balance, month, year, monthlyRate, piPayment, s);
+    const saved = baseline.totalInterest - r.totalInterest;
+    const tr = document.createElement('tr');
+    if (s === extra || (!scenarios.includes(extra) && s === highlightVal)) {
+      tr.className = 'highlight';
+    }
+    tr.innerHTML = `
+      <td>${s === 0 ? 'None' : '$' + s.toLocaleString()}</td>
+      <td>${fmtMoney(regular + s)}/mo</td>
+      <td>${fmtDate(r.payoffDate)}</td>
+      <td>${fmtMoney(r.totalInterest)}</td>
+      <td class="savings-cell">${saved > 0 ? fmtMoney(saved) : '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Wire slider + extra input ---
+const slider = document.getElementById('extraSlider');
+const extraIn = document.getElementById('extraInput');
+
+function getExtra() { return Math.max(0, parseInt(extraIn.value) || 0); }
+
+slider.addEventListener('input', () => {
+  extraIn.value = slider.value;
+  update(parseInt(slider.value));
+});
+extraIn.addEventListener('input', () => {
+  const v = getExtra();
+  slider.value = Math.min(3000, v);
+  update(v);
+});
+
+// --- Wire loan settings ---
+['inputBalance','inputRate','inputRegular','inputEscrow','inputMonth','inputYear'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => update(getExtra()));
+  document.getElementById(id).addEventListener('input', () => update(getExtra()));
+});
+
+// Init
+update(1609);
+</script>
+</body>
+</html>
