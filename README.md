@@ -2,7 +2,7 @@
  
 An interactive, single-page app for planning your mortgage payoff timeline. Adjust your extra monthly principal payment and instantly see how it affects your payoff date, total interest paid, and interest saved.
  
-**Live site:** https://blakekelley127.github.io/mortgage-payoff-planner
+**Live site:** https://kelley12.github.io/mortgage-payoff-planner
  
 ## Features
  
