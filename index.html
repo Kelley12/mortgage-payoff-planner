@@ -427,8 +427,19 @@
   <div class="explain-body">
 
     <h3>The Calculation</h3>
-    <p>Each month, interest accrues on your remaining balance: <strong>Balance × (Annual Rate ÷ 12)</strong>. Your regular payment covers that interest first — the remainder reduces principal. Any extra payment goes entirely to principal on top of that.</p>
-    <p>Because interest is calculated on a shrinking balance, paying down principal faster creates a compounding effect: less interest next month means more of your regular payment also goes to principal, and so on.</p>
+    <p>Each month, interest accrues on your remaining balance using the formula <strong>Balance × (Annual Rate ÷ 12)</strong>. Your regular payment covers that month's interest first — whatever remains after interest reduces your principal. Any extra payment bypasses the interest split entirely and goes straight to principal. Because next month's interest is calculated on a now-smaller balance, paying down principal faster has a cascading effect: less interest means more of your regular payment also reduces principal, which reduces interest further, and so on for every remaining month of the loan.</p>
+
+    <h3>Where Your Regular Payment Comes From</h3>
+    <p>Your scheduled monthly payment isn't arbitrary — it's derived from the standard amortization formula: <strong>M = P × [r(1+r)ⁿ] ÷ [(1+r)ⁿ − 1]</strong>, where P is your original loan principal, r is the monthly interest rate (annual rate ÷ 12), and n is the total number of payments. This formula is solved so that if you make every payment on schedule, your balance reaches exactly zero on the last payment of your loan term — not a dollar over or under. The math balances the fact that early payments are heavily weighted toward interest (when the balance is large) and later payments toward principal (when the balance is small). If your current balance and payment don't match the original term, it means you've already made progress, refinanced, or made extra payments at some point.</p>
+
+    <h3>Simple Monthly Interest, Not Daily Compounding</h3>
+    <p>Most U.S. mortgages use simple interest calculated once per month on the outstanding balance — not daily compounding as with credit cards or some personal loans. This means interest doesn't accrue on top of itself between payments; it resets each billing cycle based on your current principal. The practical effect is that making your payment on time (rather than early) doesn't save interest within a given month — what matters is the balance at the start of each billing period. However, anything that reduces your balance before the next cycle begins — like an extra payment applied this month — does reduce next month's interest charge. This is a more favorable structure than daily-compounding debt, where interest accumulates every day and capitalizes if unpaid.</p>
+
+    <h3>Fully Amortized Loans</h3>
+    <p>A "fully amortized" mortgage means each scheduled payment is sized so that no lump sum (balloon payment) is due at the end. Every payment contributes something to principal, no matter how small, so the balance steadily declines toward zero over the full term. This is in contrast to interest-only loans, where payments cover only interest and the full principal remains due at maturity. Full amortization also means your payment amount is fixed for the life of the loan (on a fixed-rate mortgage) even as the internal split between interest and principal shifts dramatically — early payments might be 80% interest, while the final payments are nearly all principal. The certainty of a fixed fully-amortized payment is what makes mortgages predictable to budget around.</p>
+
+    <h3>How This Tool Simulates It</h3>
+    <p>Rather than using a closed-form formula to jump to a final answer, this planner simulates your loan month by month. Each iteration computes that month's interest, subtracts it from your payment to find principal reduction, applies any extra payment on top, and carries the new balance forward. This approach is more flexible than a formula — it correctly handles variable extra payments, loans mid-term, and any balance entered at any date. The trade-off is that it's iterative rather than instantaneous, but for a loan of typical length the simulation completes in milliseconds. It also means what you see in the chart and table reflects the actual month-by-month path of your balance, not an approximation.</p>
 
     <h3>How Each Field Affects Payoff</h3>
     <ul>
@@ -438,6 +449,16 @@
       <li><strong>Regular Monthly Payment</strong> — your full scheduled payment (principal + interest + escrow). The amount above current-month interest is what reduces your balance.</li>
       <li><strong>Extra Monthly Principal</strong> — paid directly against principal every month, bypassing interest entirely. This has the highest leverage early in the loan when the balance is large.</li>
     </ul>
+
+    <h3>Why Early Payments Have the Most Impact</h3>
+    <p>In the early years of a mortgage, most of your regular payment goes toward interest rather than principal. On a standard amortization schedule, this is intentional — the lender applies your payment to the current month's interest first, so the split is always tied to your current balance. Early on, the balance is large, so interest is large, leaving little for principal. Over time, as principal falls, the interest portion shrinks and more of each payment naturally goes to principal.</p>
+    <p>This is why extra payments made <em>early</em> are so powerful: each dollar of principal you eliminate today removes that dollar from every future interest calculation for the life of the loan. A dollar paid extra in year one saves more interest than the same dollar paid extra in year ten, because it has more remaining months to stop compounding against you.</p>
+
+    <h3>The Cost of Waiting</h3>
+    <p>Every month you delay starting extra payments, your remaining balance accrues one more month of interest at the full amount. That interest isn't just a one-time cost — it also means your regular payment does slightly less principal reduction that month, which slightly increases every subsequent month's interest. The cost of a one-month delay compounds forward through the life of the loan, even if you resume extra payments the following month.</p>
+
+    <h3>Extra Payments as a Risk-Free Return</h3>
+    <p>Paying extra principal is financially equivalent to investing money at your mortgage's interest rate, guaranteed and risk-free. If your rate is 3.125%, every dollar of extra principal "earns" 3.125% per year in avoided interest for as long as the loan would have run. Unlike market investments, this return is certain — it doesn't depend on stock performance, and it isn't taxable as income. Whether it beats other uses of your money depends on your rate, your tax situation, and available investment alternatives.</p>
 
     <h3>Diminishing Returns on Extra Payments</h3>
     <p>The first few hundred dollars of extra principal per month save a disproportionate amount of time and interest — because they act over the full remaining loan term. As you add more, the loan is already shortened, so there are fewer months for the compounding effect to work. Each additional dollar saves less than the last.</p>
